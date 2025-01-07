@@ -6,7 +6,7 @@ FROM ubuntu:22.04
 RUN mkdir /service
 
 # Copy the SDK zip file into the container
-COPY HikrobotService/MvCamCtrlSDK_STD_V4.4.1_240827.zip /tmp/MvCamCtrlSDK_STD_V4.4.1_240827.zip
+COPY src/MvCamCtrlSDK_STD_V4.4.1_240827.zip /tmp/MvCamCtrlSDK_STD_V4.4.1_240827.zip
 
 # Set environment variables
 ENV MVCAM_COMMON_RUNENV=/opt/MVS/lib
@@ -26,25 +26,24 @@ RUN unzip /tmp/MvCamCtrlSDK_STD_V4.4.1_240827.zip -d /opt/MVS_install && \
     rm -rf /tmp/MvCamCtrlSDK_STD_V4.4.1_240827.zip /opt/MVS_install
 
 # Copy only the requirements file first (this way it will not retrigger pip install if only .py file changes)
-COPY HikrobotService/Hikrobot/requirements.txt /service/Hikrobot/requirements.txt
+COPY requirements.txt /service/requirements.txt
 
-WORKDIR /service/Hikrobot
+WORKDIR /service
 
 #install python packages
 RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install -r requirements.txt
 
 # copy the source files
-COPY HikrobotService/Hikrobot/ /service/Hikrobot
-COPY protobufs/ /service/protobufs    
+COPY src /service/src
+COPY protofiles/ /service/protobufs    
 
 #create folder for generated files
 RUN mkdir generated
 
-
 #create grpc files
-RUN python3 -m grpc_tools.protoc -I ../protobufs --python_out=./generated \
-           --grpc_python_out=./generated ../protobufs/hikrobot.proto
+RUN python3 -m grpc_tools.protoc -I /service/protobufs --python_out=./generated \
+           --grpc_python_out=./generated /service/protobufs/hikrobot_cam.proto
 
 
 # Set the library path
@@ -55,4 +54,4 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 
 EXPOSE 50051
-ENTRYPOINT [ "python3", "hikrobot_server.py" ]
+ENTRYPOINT [ "python3", "src/app.py" ]
