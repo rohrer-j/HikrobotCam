@@ -3,7 +3,7 @@ import sys
 from concurrent import futures
 import logging
 
-sys.path.append('/service/generated')
+sys.path.append('../generated')
 import hikrobot_cam_pb2
 import hikrobot_cam_pb2_grpc
 from hikrobot import HikRobotCamera, HikRobotCameraException
